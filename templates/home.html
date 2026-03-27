@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% block title %}Plan Your Trip | SmartTravel AI{% endblock %}
+
+{% block css %}
+{{ block.super }}
+<style>
+    /* Hero Section Styling */
+    .hero-section {
+        background: linear-gradient(rgba(15, 23, 42, 0.02), rgba(15, 23, 42, 0.05));
+        padding: 60px 20px;
+        border-radius: 24px;
+        margin-bottom: 40px;
+    }
+
+    /* Enhanced Search Bar */
+    .search-container {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .search-bar-input {
+        border-radius: 100px !important;
+        padding: 1.5rem 2rem !important;
+        border: 2px solid #e2e8f0 !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
+        font-size: 1.1rem;
+    }
+
+    .search-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-radius: 100px !important;
+        padding: 10px 30px !important;
+    }
+
+    /* Modern Destination Cards */
+    .destination-card {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        background: #fff;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+    }
+    
+    .destination-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .image-container {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+    }
+
+    .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .price-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 5px 15px;
+        border-radius: 50px;
+        font-weight: 700;
+        color: var(--dark-navy);
+        font-size: 0.9rem;
+    }
+
+    .type-tag {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        background: var(--primary-travel);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    /* Suggestion Pills */
+    .suggestion-badge {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        transition: all 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .suggestion-badge:hover {
+        border-color: var(--primary-travel);
+        color: var(--primary-travel);
+        background: #f0f9ff;
+    }
+
+    /* Budget Summary */
+    .budget-card {
+        background: #ffffff;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+    }
+
+    .total-row {
+        background: #f8fafc;
+        font-size: 1.2rem;
+        color: var(--primary-travel);
+    }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="container">
+    <div class="hero-section text-center">
+        <span class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill mb-3" style="background: #e0f2fe;">
+    <i class="fas fa-sparkles me-1"></i> Smart-Travel
+</span>
+
+<h1 class="display-5 fw-bold mb-3">
+    {% if request.user.is_authenticated %}
+        {% if query %}
+            Great choice, {{ request.user.first_name|default:request.user.username }}! Let's map out {{ parsed_query.region|default:"your trip" }}.
+        {% else %}
+            Welcome back, {{ request.user.first_name|default:request.user.username }}! Ready for your next adventure?
+        {% endif %}
+    {% else %}
+        Where to next, Explorer?
+    {% endif %}
+</h1>
+
+<p class="text-muted lead mb-4">
+    {% if request.user.is_authenticated and not query %}
+        We’ve updated your travel recommendations based on your recent activity.
+    {% else %}
+        Just type your plan, and let our ML model handle the logistics.
+    {% endif %}
+</p>
+        <form method="get" class="search-container">
+            <input type="text" name="q" class="form-control search-bar-input" 
+                   placeholder="e.g. Plan a 3-day trip to Swat under 30,000 PKR" value="{{ query }}" autofocus>
+            <button type="submit" class="btn btn-primary search-btn btn-lg">
+                <i class="fas fa-magic me-2"></i>Generate Plan
+            </button>
+        </form>
+    </div>
+
+    {% if parsed_query.region or parsed_query.days or parsed_query.budget %}
+    <div class="d-flex flex-wrap align-items-center mb-5 p-4 bg-white rounded-4 shadow-sm">
+        <div class="me-3 fw-bold text-muted small text-uppercase">Active Filters:</div>
+        {% if parsed_query.region %}
+            <span class="suggestion-badge border-primary text-primary"><i class="fas fa-map-marker-alt me-2"></i>{{ parsed_query.region }}</span>
+        {% endif %}
+        {% if parsed_query.days %}
+            <span class="suggestion-badge border-primary text-primary"><i class="fas fa-calendar-day me-2"></i>{{ parsed_query.days }} Days</span>
+        {% endif %}
+        {% if parsed_query.budget %}
+            <span class="suggestion-badge border-primary text-primary"><i class="fas fa-wallet me-2"></i>PKR {{ parsed_query.budget }}</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row mb-5">
+        <div class="col-12 d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h3 class="fw-bold mb-0">Recommended for You</h3>
+                <p class="text-muted mb-0">Based on your travel style and budget</p>
+            </div>
+            <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">View All <i class="fas fa-arrow-right ms-1"></i></a>
+        </div>
+        
+        <div class="row">
+            {% for dest in recommendations %}
+            <div class="col-md-4 mb-4">
+                <div class="destination-card">
+                    <div class="image-container">
+                        {% if dest.image %}
+                            <img src="{{ dest.image.url }}" alt="{{ dest.name }}">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=600" alt="Default Travel">
+                        {% endif %}
+                        <div class="price-badge">PKR {{ dest.cost }}</div>
+                        <div class="type-tag">{{ dest.type }}</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0">{{ dest.name }}</h5>
+                            <span class="text-warning small"><i class="fas fa-star me-1"></i>{{ dest.user_rating|default:"4.5" }}</span>
+                        </div>
+                        <p class="text-muted small mb-3"><i class="fas fa-location-dot me-2"></i>{{ dest.region }}</p>
+                        
+                        <div class="d-flex justify-content-between border-top pt-3 mb-3">
+                            <span class="small text-muted"><i class="fas fa-cloud-sun me-1"></i> {{ dest.weather }}</span>
+                            <span class="small text-muted"><i class="fas fa-wind me-1"></i> {{ dest.best_season }}</span>
+                        </div>
+
+                        <!-- Plan My Trip Button -->
+                        <a href="{% url 'plan_trip' dest.id %}" 
+                           class="btn btn-primary w-100 py-3 rounded-3 fw-semibold">
+                            <i class="fas fa-plane-departure me-2"></i>
+                            Plan My Trip
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" width="80" class="mb-3 opacity-25" alt="No results">
+                <h5 class="text-muted">No destinations found matching those criteria.</h5>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-lg-7">
+            <div class="budget-card p-4 h-100">
+                <h4 class="fw-bold mb-4"><i class="fas fa-calculator text-primary me-2"></i>Cost Optimization</h4>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="text-muted small">
+                            <tr>
+                                <th>EXPENSE CATEGORY</th>
+                                <th class="text-end">ESTIMATED COST</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item, cost in budget_summary.items %}
+                            <tr>
+                                <td class="py-3 fw-medium">{{ item }}</td>
+                                <td class="py-3 text-end fw-bold">PKR {{ cost }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="total-row">
+                                <td class="py-3 fw-bold">Total Estimated Budget</td>
+                                <td class="py-3 text-end fw-bold">PKR {{ total_budget|default:"23,000" }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="p-4 bg-dark rounded-4 text-white h-100 shadow-lg">
+                <h4 class="fw-bold mb-4"><i class="fas fa-lightbulb text-warning me-2"></i>Travel Ideas</h4>
+                <p class="text-white-50 mb-4">Popular trending searches near your region:</p>
+                <div class="d-flex flex-wrap">
+                    {% for suggestion in travel_suggestions %}
+                        <a href="?q={{ suggestion|urlencode }}" class="suggestion-badge border-0 bg-secondary text-white">{{ suggestion }}</a>
+                    {% endfor %}
+                    {% if not travel_suggestions %}
+                        <a href="#" class="suggestion-badge border-0 bg-secondary text-white">Top Adventure under 20k</a>
+                        <a href="#" class="suggestion-badge border-0 bg-secondary text-white">Best Weekend Getaways</a>
+                        <a href="#" class="suggestion-badge border-0 bg-secondary text-white">Family Friendly Spots</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+{% if map_destinations %}
+<div class="mb-5">
+    <h3 class="fw-bold mb-3">
+        <i class="fas fa-map-marked-alt me-2 text-primary"></i>
+        Map & Distance from Your Location
+    </h3>
+    <div id="home-map" style="height: 450px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);"></div>
+    
+    <div class="mt-3 text-center text-muted small">
+        <i class="fas fa-info-circle me-1"></i>
+        Blue lines show approximate distance from Karachi to recommended destinations
+    </div>
+</div>
+{% endif %}
+    </div>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<!-- Enhanced Home Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+{% if map_destinations %}
+    // Initialize map
+    var map = L.map('home-map').setView([{{ user_location.lat }}, {{ user_location.lng }}], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // User Location Marker
+    L.marker([{{ user_location.lat }}, {{ user_location.lng }}])
+        .addTo(map)
+        .bindPopup("<b>Your Location</b><br>Karachi, Pakistan")
+        .openPopup();
+
+    // Destinations data
+    var destinations = {{ map_destinations|safe }};
+
+    destinations.forEach(function(dest) {
+        // Destination Marker
+        L.marker([dest.lat, dest.lng])
+            .addTo(map)
+            .bindPopup(
+                "<b>" + dest.name + "</b><br>" +
+                "Cost: PKR " + dest.cost.toLocaleString() + "<br>" +
+                "<strong>Distance: " + dest.distance + " km</strong><br>" +
+                "Approx. " + dest.time + " hours drive"
+            );
+
+        // Route line with nice styling
+        L.polyline([
+            [{{ user_location.lat }}, {{ user_location.lng }}],
+            [dest.lat, dest.lng]
+        ], {
+            color: '#2563eb',
+            weight: 3.5,
+            opacity: 0.75,
+            dashArray: '6, 8'
+        }).addTo(map);
+    });
+
+    // Optional: Fit map to show all markers nicely
+    if (destinations.length > 0) {
+        var bounds = L.latLngBounds(
+            [[{{ user_location.lat }}, {{ user_location.lng }}]]
+        );
+        destinations.forEach(function(dest) {
+            bounds.extend([dest.lat, dest.lng]);
+        });
+        map.fitBounds(bounds, { padding: [40, 40] });
+    }
+{% endif %}
+</script>
+{% endblock content %}

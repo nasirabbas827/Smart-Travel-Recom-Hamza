@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block title %}Update Itinerary | SmartTravel AI{% endblock %}
+
+{% block css %}
+{{ block.super }}
+<style>
+    .auth-card {
+        background: white;
+        border-radius: 32px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+        margin-top: 1rem;
+    }
+
+    .auth-info-pane {
+        background: var(--dark-navy);
+        color: white;
+        padding: 4rem 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+    }
+
+    .auth-info-pane::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url('https://www.transparenttextures.com/patterns/world-map.png');
+        opacity: 0.1;
+        pointer-events: none;
+    }
+
+    .auth-form-pane {
+        padding: 4rem 3.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control {
+        border: 2px solid #f1f5f9;
+        border-radius: 14px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s;
+        background: #fdfdfd;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-travel);
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        background: white;
+    }
+
+    .btn-update {
+        background: var(--primary-travel);
+        color: white;
+        border: none;
+        padding: 1.1rem;
+        border-radius: 14px;
+        font-weight: 700;
+        transition: all 0.3s;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-update:hover {
+        background: #0284c7;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 20px -5px rgba(14, 165, 233, 0.4);
+        color: white;
+    }
+
+    .tip-box {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    code {
+        color: #7dd3fc;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="container mb-5">
+    <div class="row auth-card g-0">
+        <div class="col-lg-4 auth-info-pane d-none d-lg-flex">
+            <div class="position-relative z-index-1">
+                <span class="badge bg-primary mb-3">EDITOR MODE</span>
+                <h2 class="display-6 fw-bold mb-4">Refine Your Journey.</h2>
+                <p class="lead text-white-50">Adjust your travel dates, budget, or activities to perfectly match your plans.</p>
+                
+                <div class="tip-box">
+                    <h6 class="text-white fw-bold mb-2"><i class="fas fa-code-branch me-2"></i> JSON Format Tip:</h6>
+                    <p class="small text-white-50 mb-0">Ensure your daily plan follows the structure:</p>
+                    <pre class="mt-2 mb-0"><code>[
+  {
+    "day": 1,
+    "activities": ["A", "B"]
+  }
+]</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 auth-form-pane">
+            <div class="mb-4">
+                <h3 class="fw-bold text-dark">Update Itinerary</h3>
+                <p class="text-muted">Editing: <span class="text-primary fw-bold">{{ itinerary.title }}</span></p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="title" class="form-label">Trip Title</label>
+                        <input type="text" id="title" name="title" class="form-control" 
+                               value="{{ itinerary.title }}" placeholder="e.g. Summer in Skardu" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="days" class="form-label">Number of Days</label>
+                        <input type="number" id="days" name="days" class="form-control" 
+                               value="{{ itinerary.days }}" min="1" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="total_cost" class="form-label">Total Cost (PKR)</label>
+                        <input type="number" id="total_cost" name="total_cost" class="form-control" 
+                               value="{{ itinerary.total_estimated_cost }}" min="0" required>
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <label for="daily_plan" class="form-label">Daily Plan (JSON)</label>
+                        <textarea id="daily_plan" name="daily_plan" rows="8" 
+                                  class="form-control font-monospace" style="font-size: 0.9rem;">{{ daily_plan }}</textarea>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-update flex-grow-1">
+                        SAVE CHANGES <i class="fas fa-save ms-2"></i>
+                    </button>
+                    <a href="{% url 'my_trips' %}" class="btn btn-light border-0 py-3 px-4 rounded-4 fw-bold text-muted">
+                        CANCEL
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

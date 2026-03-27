@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% block title %}Plan Trip to {{ destination.name }} | SmartTravel AI{% endblock %}
+
+{% block css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map { height: 420px; border-radius: 16px; margin-bottom: 30px; }
+    
+    .plan-hero {
+        background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.65)), 
+                    url('{{ destination.image.url|default:"https://picsum.photos/1200/500" }}') center/cover no-repeat;
+        height: 380px;
+        border-radius: 20px;
+        display: flex;
+        align-items: flex-end;
+        padding: 50px 40px;
+        color: white;
+        margin-bottom: 40px;
+    }
+
+    .itinerary-card {
+        transition: all 0.3s ease;
+    }
+    .itinerary-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+    }
+
+    .day-badge {
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        font-weight: 700;
+    }
+
+    .cost-total {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0ea5e9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Hero -->
+    <div class="plan-hero">
+        <div>
+            <h1 class="display-4 fw-bold mb-2">{{ destination.name }}</h1>
+            <p class="lead mb-0">
+                <i class="fas fa-map-marker-alt me-2"></i>{{ destination.region }} • {{ destination.type }}
+            </p>
+        </div>
+    </div>
+    <!-- Activities Section -->
+{% if activities %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-3">Activities to Do</h4>
+    <div class="d-flex flex-wrap gap-2">
+        {% for activity in activities %}
+            <span class="badge bg-light text-dark border px-3 py-2">
+                <i class="fas fa-check-circle text-success me-1"></i>
+                {{ activity }}
+            </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+
+            {% if ai_advice %}
+            <div class="alert alert-info border-0 mb-4" style="background: #f0f9ff; border-left: 5px solid #0ea5e9;">
+                <i class="fas fa-robot me-2"></i>
+                <strong>Smart AI Insight:</strong> {{ ai_advice }}
+            </div>
+            {% endif %}
+
+            <!-- Duration & Budget Display -->
+            <div class="mb-4 d-flex gap-3 flex-wrap">
+                <div>
+                    <h5 class="fw-semibold mb-2">Duration</h5>
+                    <div class="btn-group">
+                        <a href="?days=3{% if budget %}&budget={{ budget }}{% endif %}" 
+                           class="btn {% if days == 3 %}btn-primary{% else %}btn-outline-primary{% endif %}">3 Days</a>
+                        <a href="?days=5{% if budget %}&budget={{ budget }}{% endif %}" 
+                           class="btn {% if days == 5 %}btn-primary{% else %}btn-outline-primary{% endif %}">5 Days</a>
+                        <a href="?days=7{% if budget %}&budget={{ budget }}{% endif %}" 
+                           class="btn {% if days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}">7 Days</a>
+                    </div>
+                </div>
+                
+                {% if budget %}
+                <div>
+                    <h5 class="fw-semibold mb-2">Your Budget</h5>
+                    <span class="badge bg-success fs-5 px-3 py-2">
+                        PKR {{ budget }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <h3 class="fw-bold mb-4">
+                Your {{ days }}-Day Personalized Itinerary
+                {% if itinerary_summary %}
+                    <small class="text-muted d-block mt-1 fw-normal">{{ itinerary_summary }}</small>
+                {% endif %}
+            </h3>
+            
+            <div class="row g-4">
+                {% for item in itinerary %}
+                <div class="col-12">
+                    <div class="card itinerary-card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="day-badge px-3 py-1 rounded-pill me-3">DAY {{ item.day }}</span>
+                                <h5 class="mb-0 fw-semibold">{{ item.title }}</h5>
+                            </div>
+                            <p class="text-muted mb-2">{{ item.description }}</p>
+                            {% if item.highlight %}
+                            <small class="text-primary">
+                                <i class="fas fa-star me-1"></i> Highlight: {{ item.highlight }}
+                            </small>
+                            {% endif %}
+                            <hr class="my-3">
+                            <small class="text-muted">
+                                <i class="fas fa-utensils me-1"></i> 
+                                {{ item.meals|default:"Breakfast, Lunch & Dinner" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Enhanced Distance Map -->
+<div class="mt-5">
+    <h4 class="fw-bold mb-3">
+        <i class="fas fa-map-marked-alt me-2"></i>
+        Distance from Your Location
+    </h4>
+    <div id="distance-map" style="height: 420px; border-radius: 16px;"></div>
+    
+    {% if distance_info %}
+    <div class="mt-3 text-center">
+        <div class="alert alert-info d-inline-block py-2 px-4">
+            <strong>Distance:</strong> {{ distance_info.distance }} km 
+            <span class="text-muted">• Approx. {{ distance_info.time }} hours drive</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div style="position: sticky; top: 100px;">
+
+                <!-- Cost Summary -->
+                <div class="card shadow-lg border-0 mb-4">
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <h5 class="mb-1">Estimated Total Cost</h5>
+                        <h2 class="cost-total text-white mb-0">{{ formatted_total }}</h2>
+                        <small>for {{ days }} days</small>
+                    </div>
+                    <div class="card-body p-4">
+                        <table class="table table-borderless">
+                            {% for category, cost in budget_breakdown.items %}
+                            <tr>
+                                <td class="py-3">{{ category }}</td>
+                                <td class="py-3 text-end fw-medium">{{ cost }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                    {% if budget_warning %}
+                    <div class="card-footer bg-warning text-dark text-center small">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Budget looks high. Consider shorter trip.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Save Form -->
+                <form method="POST" action="{% url 'save_itinerary' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="destination_id" value="{{ destination.id }}">
+                    <input type="hidden" name="days" value="{{ days }}">
+                    <input type="hidden" name="total_cost" value="{{ total_cost }}">
+                    {% if budget %}<input type="hidden" name="budget" value="{{ budget }}">{% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Trip Title</label>
+                        <input type="text" name="title" class="form-control" 
+                               value="Trip to {{ destination.name }}" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
+                        <i class="fas fa-save me-2"></i> Save This Itinerary
+                    </button>
+                </form>
+
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary w-100">
+                    ← Back to Recommendations
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet Map with Distance -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // User's location (Karachi fallback - same as home.html)
+    const userLat = {{ user_location.lat|default:24.8607 }};
+    const userLng = {{ user_location.lng|default:67.0011 }};
+    
+    // Destination coordinates (from model or fallback)
+    const destLat = {{ destination.lat|default:34.5 }};
+    const destLng = {{ destination.lon|default:73.2 }};
+
+    // Initialize map
+    const map = L.map('distance-map').setView(
+        [(userLat + destLat)/2, (userLng + destLng)/2], 
+        7
+    );
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // User's Location Marker
+    L.marker([userLat, userLng])
+        .addTo(map)
+        .bindPopup("<b>Your Location</b><br>Karachi (Default)")
+        .openPopup();
+
+    // Destination Marker
+    L.marker([destLat, destLng])
+        .addTo(map)
+        .bindPopup(`<b>${"{{ destination.name }}" }</b><br>${"{{ destination.region }}" }`)
+        .openPopup();
+
+    // Draw route line
+    L.polyline([
+        [userLat, userLng],
+        [destLat, destLng]
+    ], {
+        color: '#2563eb',
+        weight: 4,
+        opacity: 0.75,
+        dashArray: '8, 8'
+    }).addTo(map);
+
+    // Auto-fit map to show both points nicely
+    const bounds = L.latLngBounds([
+        [userLat, userLng],
+        [destLat, destLng]
+    ]);
+    map.fitBounds(bounds, { padding: [50, 50] });
+</script>
+{% endblock %}

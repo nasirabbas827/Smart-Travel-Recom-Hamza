@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}Join SmartTravel AI | Start Your Journey{% endblock title %}
+
+{% block css %}
+{{ block.super }}
+<style>
+    .auth-card {
+        background: white;
+        border-radius: 32px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+        margin-top: 1rem;
+    }
+
+    .auth-info-pane {
+        background: var(--dark-navy);
+        color: white;
+        padding: 4rem 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+    }
+
+    /* Decorative Travel Pattern */
+    .auth-info-pane::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url('https://www.transparenttextures.com/patterns/world-map.png');
+        opacity: 0.1;
+        pointer-events: none;
+    }
+
+    .auth-form-pane {
+        padding: 4rem 3.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-control {
+        border: 2px solid #f1f5f9;
+        border-radius: 14px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s;
+        background: #fdfdfd;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-travel);
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        background: white;
+    }
+
+    .btn-register {
+        background: var(--primary-travel);
+        color: white;
+        border: none;
+        padding: 1.1rem;
+        border-radius: 14px;
+        font-weight: 700;
+        width: 100%;
+        margin-top: 1.5rem;
+        transition: all 0.3s;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-register:hover {
+        background: #0284c7;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 20px -5px rgba(14, 165, 233, 0.4);
+        color: white;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 2.5rem;
+    }
+
+    .feature-list li {
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        font-size: 1rem;
+        color: #cbd5e1;
+    }
+
+    .feature-list i {
+        margin-right: 15px;
+        color: var(--primary-travel);
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="container mb-5">
+    <div class="row auth-card g-0">
+        <div class="col-lg-5 auth-info-pane d-none d-lg-flex">
+            <div class="position-relative z-index-1">
+                <span class="badge bg-primary mb-3">AI TRAVEL COMPANION</span>
+                <h2 class="display-6 fw-bold mb-4">Start Your Pakistan Adventure.</h2>
+                <p class="lead text-white-50">Create an account to unlock personalized features powered by our Recommendation Engine.</p>
+                
+                <ul class="feature-list">
+                    <li><i class="fas fa-magic"></i> ML-Powered Trip Personalization</li>
+                    <li><i class="fas fa-heart"></i> Save Favorite Destinations</li>
+                    <li><i class="fas fa-wallet"></i> Real-time Budget Estimation</li>
+                    <li><i class="fas fa-cloud-sun"></i> Smart Weather Alerts</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-7 auth-form-pane">
+            <div class="mb-4">
+                <h3 class="fw-bold text-dark">Join the Community</h3>
+                <p class="text-muted">Already a traveler? <a href="{% url 'user_login' %}" class="text-primary text-decoration-none fw-bold">Login here</a></p>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert alert-danger border-0 rounded-4 small py-3 mb-4">
+                    <i class="fas fa-exclamation-circle me-2"></i> Please fix the errors in the form below.
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'user_register' %}">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Choose a Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}<div class="text-danger extra-small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Email Address</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<div class="text-danger extra-small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Password</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}<div class="text-danger extra-small mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label class="form-label">Confirm Password</label>
+                        {{ form.password2 }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-register">
+                    CREATE MY TRAVEL PROFILE <i class="fas fa-plane-departure ms-2"></i>
+                </button>
+                
+                <p class="text-center text-muted small mt-4">
+                    By joining, you agree to our <a href="#" class="text-decoration-none">Travel Terms</a> and <a href="#" class="text-decoration-none">Privacy Policy</a>.
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Automated styling for Django's form widgets
+    document.querySelectorAll('input').forEach(input => {
+        input.classList.add('form-control');
+        if (input.name === 'username') input.placeholder = 'e.g. mountain_seeker';
+        if (input.type === 'email') input.placeholder = 'you@example.com';
+    });
+</script>
+{% endblock content %}

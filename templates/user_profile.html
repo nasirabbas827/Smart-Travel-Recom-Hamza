@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile | SmartTravel AI{% endblock title %}
+
+{% block css %}
+{{ block.super }}
+<style>
+    .profile-header { background: var(--dark-navy); color: white; padding: 5rem 0; border-radius: 32px; margin-bottom: -4rem; position: relative; z-index: 1; overflow: hidden; }
+    .profile-header::after { content: ""; position: absolute; top:0; left:0; width:100%; height:100%; background:url('https://www.transparenttextures.com/patterns/az-subtle.png'); opacity:0.1; }
+    .profile-card { background:white; border:1px solid #f1f5f9; border-radius:28px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.05); overflow:hidden; position:relative; z-index:2; padding:2.5rem; }
+    .form-section-title { display:flex; align-items:center; gap:10px; margin-bottom:1.5rem; color:var(--dark-navy); font-weight:700; }
+    .form-label { font-weight:600; font-size:0.8rem; color:#64748b; margin-bottom:0.6rem; text-transform:uppercase; letter-spacing:0.8px; }
+    .form-control, .form-select { border:2px solid #f1f5f9; border-radius:14px; padding:0.8rem 1rem; transition:all 0.3s; background:#fdfdfd; }
+    .form-control:focus, .form-select:focus { border-color: var(--primary-travel); box-shadow:0 0 0 4px rgba(14,165,233,0.1); background:white; }
+    .feature-card { background:white; border:1px solid #f1f5f9; border-radius:20px; padding:1.8rem; transition:all 0.3s; text-decoration:none !important; color:inherit; display:block; height:100%; }
+    .feature-card:hover { border-color:var(--primary-travel); box-shadow:0 15px 30px rgba(0,0,0,0.04); transform:translateY(-8px); }
+    .feature-icon { width:54px; height:54px; background:#f0f9ff; color:var(--primary-travel); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:1.2rem; }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="container pb-5">
+    <div class="profile-header text-center">
+        <div class="position-relative z-index-1">
+            <h1 class="display-5 fw-bold mb-2">Traveler Profile</h1>
+            <p class="text-white-50 lead">Customize your discovery engine and personal details</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="profile-card">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-id-card text-primary"></i>
+                            <h5 class="mb-0">Personal Identity</h5>
+                        </div>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Username</label>
+                                {{ user_form.username }}
+                                <div class="form-text small"><i class="fas fa-lock me-1"></i> Unique traveler ID cannot be changed.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address</label>
+                                {{ user_form.email }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">First Name</label>
+                                {{ user_form.first_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name</label>
+                                {{ user_form.last_name }}
+                            </div>
+                        </div>
+
+                        <hr class="my-5 opacity-25">
+
+                        <div class="form-section-title">
+                            <i class="fas fa-sliders text-primary"></i>
+                            <h5 class="mb-0">Travel Preferences (AI Model Input)</h5>
+                        </div>
+                        <p class="text-muted small mb-4">These settings help our Recommendation Engine suggest the best spots in Pakistan for you.</p>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Preferred Budget Range</label>
+                                {{ profile_form.budget_range }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Primary Travel Style</label>
+                                {{ profile_form.travel_style }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Typical Trip Duration</label>
+                                {{ profile_form.duration }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Preferred Destinations</label>
+                                {{ profile_form.preferred_destinations }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Preferred Weather</label>
+                                {{ profile_form.weather }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Interests</label>
+                                {{ profile_form.interests }}
+                                <small class="text-muted">Enter comma-separated values like Hiking, Beach, Culture</small>
+                            </div>
+                        </div>
+
+                        <div class="mt-5">
+                            <button type="submit" class="btn btn-travel px-5 py-3 w-100 w-md-auto">
+                                <i class="fas fa-save me-2"></i>Save Travel Preferences
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 g-4">
+        <div class="col-md-4">
+            <a href="#" class="feature-card">
+                <div class="feature-icon"><i class="fas fa-map-location-dot"></i></div>
+                <h6 class="fw-bold">Trip History</h6>
+                <p class="text-muted small mb-0">Revisit the itineraries generated for your past searches.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="#" class="feature-card">
+                <div class="feature-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                <h6 class="fw-bold">Smart Insights</h6>
+                <p class="text-muted small mb-0">View analytics on your most visited regions and travel habits.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="#" class="feature-card">
+                <div class="feature-icon"><i class="fas fa-ticket"></i></div>
+                <h6 class="fw-bold">Saved Coupons</h6>
+                <p class="text-muted small mb-0">Manage hotel and transport discounts earned through the app.</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Apply Bootstrap classes automatically for Django fields
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        if (element.tagName === 'SELECT') element.classList.add('form-select');
+        else element.classList.add('form-control');
+    });
+</script>
+{% endblock content %}

@@ -4,7 +4,6 @@
 {% block css %}
 {{ block.super }}
 <style>
-    /* Hero Section Styling */
     .hero-section {
         background: linear-gradient(rgba(15, 23, 42, 0.02), rgba(15, 23, 42, 0.05));
         padding: 60px 20px;
@@ -12,13 +11,12 @@
         margin-bottom: 40px;
     }
 
-    /* Enhanced Search Bar */
     .search-container {
         max-width: 800px;
         margin: 0 auto;
         position: relative;
     }
-    
+
     .search-bar-input {
         border-radius: 100px !important;
         padding: 1.5rem 2rem !important;
@@ -36,7 +34,6 @@
         padding: 10px 30px !important;
     }
 
-    /* Modern Destination Cards */
     .destination-card {
         border: none;
         border-radius: 20px;
@@ -45,7 +42,7 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         height: 100%;
     }
-    
+
     .destination-card:hover {
         transform: translateY(-12px);
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
@@ -71,7 +68,7 @@
         padding: 5px 15px;
         border-radius: 50px;
         font-weight: 700;
-        color: var(--dark-navy);
+        color: var(--dark-navy, #0f172a);
         font-size: 0.9rem;
     }
 
@@ -79,7 +76,7 @@
         position: absolute;
         bottom: 15px;
         left: 15px;
-        background: var(--primary-travel);
+        background: var(--primary-travel, #2563eb);
         color: white;
         padding: 4px 12px;
         border-radius: 6px;
@@ -88,7 +85,6 @@
         font-weight: 600;
     }
 
-    /* Suggestion Pills */
     .suggestion-badge {
         background: white;
         border: 1px solid #e2e8f0;
@@ -106,12 +102,11 @@
     }
 
     .suggestion-badge:hover {
-        border-color: var(--primary-travel);
-        color: var(--primary-travel);
+        border-color: #2563eb;
+        color: #2563eb;
         background: #f0f9ff;
     }
 
-    /* Budget Summary */
     .budget-card {
         background: #ffffff;
         border-radius: 24px;
@@ -121,117 +116,173 @@
     .total-row {
         background: #f8fafc;
         font-size: 1.2rem;
-        color: var(--primary-travel);
+        color: #2563eb;
+    }
+
+    .cold-start-banner {
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border: 1px solid #bae6fd;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 2rem;
     }
 </style>
 {% endblock css %}
 
 {% block content %}
 <div class="container">
+
+    <!-- Hero Section -->
     <div class="hero-section text-center">
-        <span class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill mb-3" style="background: #e0f2fe;">
-    <i class="fas fa-sparkles me-1"></i> Smart-Travel
-</span>
+        <span class="badge px-3 py-2 rounded-pill mb-3" style="background: #e0f2fe; color: #0369a1;">
+            <i class="fas fa-magic me-1"></i> SmartTravel AI
+        </span>
 
-<h1 class="display-5 fw-bold mb-3">
-    {% if request.user.is_authenticated %}
-        {% if query %}
-            Great choice, {{ request.user.first_name|default:request.user.username }}! Let's map out {{ parsed_query.region|default:"your trip" }}.
-        {% else %}
-            Welcome back, {{ request.user.first_name|default:request.user.username }}! Ready for your next adventure?
-        {% endif %}
-    {% else %}
-        Where to next, Explorer?
-    {% endif %}
-</h1>
+        <h1 class="display-5 fw-bold mb-3">{{ greeting }}</h1>
 
-<p class="text-muted lead mb-4">
-    {% if request.user.is_authenticated and not query %}
-        We’ve updated your travel recommendations based on your recent activity.
-    {% else %}
-        Just type your plan, and let our ML model handle the logistics.
-    {% endif %}
-</p>
+        <p class="text-muted lead mb-4">
+            {% if is_authenticated and not query %}
+                We've refreshed your travel recommendations based on your profile.
+            {% else %}
+                Just type your plan — our AI handles the rest.
+            {% endif %}
+        </p>
+
         <form method="get" class="search-container">
-            <input type="text" name="q" class="form-control search-bar-input" 
-                   placeholder="e.g. Plan a 3-day trip to Swat under 30,000 PKR" value="{{ query }}" autofocus>
+            <input type="text" name="q" class="form-control search-bar-input"
+                   placeholder="e.g. Plan a 3-day trip to Swat under 30,000 PKR"
+                   value="{{ query }}" autofocus>
             <button type="submit" class="btn btn-primary search-btn btn-lg">
                 <i class="fas fa-magic me-2"></i>Generate Plan
             </button>
         </form>
     </div>
 
+    <!-- Cold-start notice for new/incomplete profiles -->
+    {% if is_cold_start and is_authenticated %}
+    <div class="cold-start-banner d-flex align-items-center gap-3 mb-4">
+        <i class="fas fa-user-edit fa-lg text-primary"></i>
+        <div>
+            <strong>Complete your profile</strong> to get personalized recommendations based on your travel style and preferences.
+            <a href="{% url 'user_profile' %}" class="ms-2 text-primary fw-semibold">Update Profile →</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Active Query Filters -->
     {% if parsed_query.region or parsed_query.days or parsed_query.budget %}
     <div class="d-flex flex-wrap align-items-center mb-5 p-4 bg-white rounded-4 shadow-sm">
         <div class="me-3 fw-bold text-muted small text-uppercase">Active Filters:</div>
         {% if parsed_query.region %}
-            <span class="suggestion-badge border-primary text-primary"><i class="fas fa-map-marker-alt me-2"></i>{{ parsed_query.region }}</span>
+            <span class="suggestion-badge border-primary text-primary">
+                <i class="fas fa-map-marker-alt me-2"></i>{{ parsed_query.region }}
+            </span>
         {% endif %}
         {% if parsed_query.days %}
-            <span class="suggestion-badge border-primary text-primary"><i class="fas fa-calendar-day me-2"></i>{{ parsed_query.days }} Days</span>
+            <span class="suggestion-badge border-primary text-primary">
+                <i class="fas fa-calendar-day me-2"></i>{{ parsed_query.days }} Days
+            </span>
         {% endif %}
         {% if parsed_query.budget %}
-            <span class="suggestion-badge border-primary text-primary"><i class="fas fa-wallet me-2"></i>PKR {{ parsed_query.budget }}</span>
+            <span class="suggestion-badge border-primary text-primary">
+                <i class="fas fa-wallet me-2"></i>PKR {{ parsed_query.budget|stringformat:"d" }}
+            </span>
         {% endif %}
+        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary ms-auto">
+            <i class="fas fa-times me-1"></i>Clear Filters
+        </a>
     </div>
     {% endif %}
 
+    <!-- Budget Exceeded Warning -->
+    {% if budget_exceeded %}
+    <div class="alert alert-warning border-0 rounded-4 mb-4" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Budget Alert:</strong> The estimated cost exceeds your stated budget of PKR {{ query_budget }}.
+        We've shown the best matching destinations, but consider a shorter trip or nearby alternatives.
+    </div>
+    {% endif %}
+
+    <!-- Recommendation Cards -->
     <div class="row mb-5">
         <div class="col-12 d-flex justify-content-between align-items-end mb-4">
             <div>
                 <h3 class="fw-bold mb-0">Recommended for You</h3>
-                <p class="text-muted mb-0">Based on your travel style and budget</p>
+                <p class="text-muted mb-0">
+                    {% if is_cold_start %}
+                        Trending destinations for Pakistani travelers
+                    {% else %}
+                        Based on your travel style and budget
+                    {% endif %}
+                </p>
             </div>
-            <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">View All <i class="fas fa-arrow-right ms-1"></i></a>
+            <a href="#" class="btn btn-link text-primary text-decoration-none fw-bold">
+                View All <i class="fas fa-arrow-right ms-1"></i>
+            </a>
         </div>
-        
+
         <div class="row">
             {% for dest in recommendations %}
             <div class="col-md-4 mb-4">
-                <div class="destination-card">
+                <div class="destination-card shadow-sm">
                     <div class="image-container">
                         {% if dest.image %}
                             <img src="{{ dest.image.url }}" alt="{{ dest.name }}">
                         {% else %}
-                            <img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=600" alt="Default Travel">
+                            <img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=600"
+                                 alt="Travel destination">
                         {% endif %}
-                        <div class="price-badge">PKR {{ dest.cost }}</div>
+                        <div class="price-badge">PKR {{ dest.cost|stringformat:"d" }}</div>
                         <div class="type-tag">{{ dest.type }}</div>
                     </div>
                     <div class="p-4">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="fw-bold mb-0">{{ dest.name }}</h5>
-                            <span class="text-warning small"><i class="fas fa-star me-1"></i>{{ dest.user_rating|default:"4.5" }}</span>
+                            <span class="text-warning small">
+                                <i class="fas fa-star me-1"></i>{{ dest.user_rating|default:"4.5" }}
+                            </span>
                         </div>
-                        <p class="text-muted small mb-3"><i class="fas fa-location-dot me-2"></i>{{ dest.region }}</p>
-                        
+                        <p class="text-muted small mb-3">
+                            <i class="fas fa-location-dot me-2"></i>{{ dest.region }}
+                        </p>
+
                         <div class="d-flex justify-content-between border-top pt-3 mb-3">
-                            <span class="small text-muted"><i class="fas fa-cloud-sun me-1"></i> {{ dest.weather }}</span>
-                            <span class="small text-muted"><i class="fas fa-wind me-1"></i> {{ dest.best_season }}</span>
+                            <span class="small text-muted">
+                                <i class="fas fa-cloud-sun me-1"></i>{{ dest.weather }}
+                            </span>
+                            <span class="small text-muted">
+                                <i class="fas fa-wind me-1"></i>{{ dest.best_season }}
+                            </span>
+                            <span class="small text-muted">
+                                <i class="fas fa-shield-alt me-1"></i>{{ dest.safety_rating }}/5
+                            </span>
                         </div>
 
-                        <!-- Plan My Trip Button -->
-                        <a href="{% url 'plan_trip' dest.id %}" 
+                        <a href="{% url 'plan_trip' dest.id %}{% if parsed_query.days %}?days={{ parsed_query.days }}{% endif %}{% if parsed_query.budget %}&budget={{ parsed_query.budget }}{% endif %}"
                            class="btn btn-primary w-100 py-3 rounded-3 fw-semibold">
-                            <i class="fas fa-plane-departure me-2"></i>
-                            Plan My Trip
+                            <i class="fas fa-plane-departure me-2"></i>Plan My Trip
                         </a>
                     </div>
                 </div>
             </div>
             {% empty %}
             <div class="col-12 text-center py-5">
-                <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png" width="80" class="mb-3 opacity-25" alt="No results">
+                <img src="https://cdn-icons-png.flaticon.com/512/6134/6134065.png"
+                     width="80" class="mb-3 opacity-25" alt="No results">
                 <h5 class="text-muted">No destinations found matching those criteria.</h5>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-primary mt-3">Clear Filters</a>
             </div>
             {% endfor %}
         </div>
     </div>
 
+    <!-- Budget + Travel Ideas -->
     <div class="row g-4 mb-5">
         <div class="col-lg-7">
-            <div class="budget-card p-4 h-100">
-                <h4 class="fw-bold mb-4"><i class="fas fa-calculator text-primary me-2"></i>Cost Optimization</h4>
+            <div class="budget-card p-4 h-100 shadow-sm">
+                <h4 class="fw-bold mb-4">
+                    <i class="fas fa-calculator text-primary me-2"></i>Cost Estimation
+                </h4>
                 <div class="table-responsive">
                     <table class="table align-middle">
                         <thead class="text-muted small">
@@ -249,72 +300,154 @@
                             {% endfor %}
                             <tr class="total-row">
                                 <td class="py-3 fw-bold">Total Estimated Budget</td>
-                                <td class="py-3 text-end fw-bold">PKR {{ total_budget|default:"23,000" }}</td>
+                                <td class="py-3 text-end fw-bold">PKR {{ total_budget }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                {% if budget_exceeded %}
+                <div class="alert alert-warning mt-2 py-2 small mb-0">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Estimate exceeds your stated budget of PKR {{ query_budget }}.
+                    Consider nearby alternatives or a shorter trip.
+                </div>
+                {% endif %}
             </div>
         </div>
 
         <div class="col-lg-5">
             <div class="p-4 bg-dark rounded-4 text-white h-100 shadow-lg">
-                <h4 class="fw-bold mb-4"><i class="fas fa-lightbulb text-warning me-2"></i>Travel Ideas</h4>
+                <h4 class="fw-bold mb-4">
+                    <i class="fas fa-lightbulb text-warning me-2"></i>Travel Ideas
+                </h4>
                 <p class="text-white-50 mb-4">Popular trending searches near your region:</p>
                 <div class="d-flex flex-wrap">
                     {% for suggestion in travel_suggestions %}
-                        <a href="?q={{ suggestion|urlencode }}" class="suggestion-badge border-0 bg-secondary text-white">{{ suggestion }}</a>
+                        <a href="?q={{ suggestion|urlencode }}"
+                           class="suggestion-badge border-0 bg-secondary text-white">
+                            {{ suggestion }}
+                        </a>
+                    {% empty %}
+                        <a href="?q=adventure+trip+under+20000" class="suggestion-badge border-0 bg-secondary text-white">Top Adventure under 20k</a>
+                        <a href="?q=weekend+trip+karachi" class="suggestion-badge border-0 bg-secondary text-white">Best Weekend Getaways</a>
+                        <a href="?q=family+friendly+destinations" class="suggestion-badge border-0 bg-secondary text-white">Family Friendly Spots</a>
                     {% endfor %}
-                    {% if not travel_suggestions %}
-                        <a href="#" class="suggestion-badge border-0 bg-secondary text-white">Top Adventure under 20k</a>
-                        <a href="#" class="suggestion-badge border-0 bg-secondary text-white">Best Weekend Getaways</a>
-                        <a href="#" class="suggestion-badge border-0 bg-secondary text-white">Family Friendly Spots</a>
-                    {% endif %}
                 </div>
             </div>
         </div>
-{% if map_destinations %}
-<div class="mb-5">
-    <h3 class="fw-bold mb-3">
-        <i class="fas fa-map-marked-alt me-2 text-primary"></i>
-        Map & Distance from Your Location
-    </h3>
-    <div id="home-map" style="height: 450px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);"></div>
-    
-    <div class="mt-3 text-center text-muted small">
-        <i class="fas fa-info-circle me-1"></i>
-        Blue lines show approximate distance from Karachi to recommended destinations
     </div>
-</div>
-{% endif %}
+
+    <!-- Top Destination Spotlight -->
+    {% if top_destination_data %}
+    <div class="row mb-5">
+        <div class="col-12 mb-3">
+            <h3 class="fw-bold">
+                <i class="fas fa-fire text-danger me-2"></i>
+                Today's Spotlight: {{ top_destination_data.destination.name }}
+            </h3>
+        </div>
+
+        {% if top_destination_data.weather %}
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h6 class="text-muted text-uppercase small mb-3">
+                    <i class="fas fa-cloud-sun me-2"></i>Live Weather
+                </h6>
+                <h3 class="fw-bold">{{ top_destination_data.weather.temp }}°C</h3>
+                <p class="text-capitalize mb-1">{{ top_destination_data.weather.description }}</p>
+                <small class="text-muted">
+                    Humidity: {{ top_destination_data.weather.humidity }}% &nbsp;|&nbsp;
+                    Wind: {{ top_destination_data.weather.wind_speed }} m/s
+                </small>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if top_destination_data.ai_advice %}
+        <div class="col-md-8 mb-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100"
+                 style="background: #f0f9ff; border-left: 5px solid #2563eb !important;">
+                <h6 class="text-muted text-uppercase small mb-3">
+                    <i class="fas fa-robot me-2 text-primary"></i>AI Insight
+                </h6>
+                <p class="mb-0">{{ top_destination_data.ai_advice }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if top_destination_data.events %}
+        <div class="col-12">
+            <h6 class="text-muted text-uppercase small mb-3">
+                <i class="fas fa-calendar-star me-2"></i>Local Attractions & Events
+            </h6>
+            <div class="d-flex flex-wrap gap-2">
+                {% for event in top_destination_data.events %}
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        <i class="fas fa-map-pin text-primary me-1"></i>
+                        {{ event.name }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
+    {% endif %}
+
+    <!-- Map -->
+    {% if map_destinations %}
+    <div class="mb-5">
+        <h3 class="fw-bold mb-3">
+            <i class="fas fa-map-marked-alt me-2 text-primary"></i>
+            Map &amp; Distance from Karachi
+        </h3>
+        <div id="home-map" style="height: 450px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);"></div>
+        <div class="mt-3 text-center text-muted small">
+            <i class="fas fa-info-circle me-1"></i>
+            Blue dashed lines show approximate distance from Karachi to recommended destinations.
+            Click markers for details.
+        </div>
+    </div>
+    {% endif %}
+
 </div>
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<!-- Enhanced Home Map -->
+
+<!-- Leaflet Map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 {% if map_destinations %}
-    // Initialize map
     var map = L.map('home-map').setView([{{ user_location.lat }}, {{ user_location.lng }}], 6);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // User Location Marker
-    L.marker([{{ user_location.lat }}, {{ user_location.lng }}])
+    // User marker
+    var userIcon = L.divIcon({
+        className: '',
+        html: '<div style="background:#2563eb;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3)">📍</div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+    });
+
+    L.marker([{{ user_location.lat }}, {{ user_location.lng }}], {icon: userIcon})
         .addTo(map)
         .bindPopup("<b>Your Location</b><br>Karachi, Pakistan")
         .openPopup();
 
-    // Destinations data
     var destinations = {{ map_destinations|safe }};
+    var bounds = L.latLngBounds([[{{ user_location.lat }}, {{ user_location.lng }}]]);
 
     destinations.forEach(function(dest) {
-        // Destination Marker
-        L.marker([dest.lat, dest.lng])
+        var destIcon = L.divIcon({
+            className: '',
+            html: '<div style="background:#0ea5e9;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.2)">✈️</div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+
+        L.marker([dest.lat, dest.lng], {icon: destIcon})
             .addTo(map)
             .bindPopup(
                 "<b>" + dest.name + "</b><br>" +
@@ -323,28 +456,20 @@
                 "Approx. " + dest.time + " hours drive"
             );
 
-        // Route line with nice styling
         L.polyline([
             [{{ user_location.lat }}, {{ user_location.lng }}],
             [dest.lat, dest.lng]
         ], {
             color: '#2563eb',
-            weight: 3.5,
-            opacity: 0.75,
-            dashArray: '6, 8'
+            weight: 3,
+            opacity: 0.65,
+            dashArray: '8, 8'
         }).addTo(map);
+
+        bounds.extend([dest.lat, dest.lng]);
     });
 
-    // Optional: Fit map to show all markers nicely
-    if (destinations.length > 0) {
-        var bounds = L.latLngBounds(
-            [[{{ user_location.lat }}, {{ user_location.lng }}]]
-        );
-        destinations.forEach(function(dest) {
-            bounds.extend([dest.lat, dest.lng]);
-        });
-        map.fitBounds(bounds, { padding: [40, 40] });
-    }
+    map.fitBounds(bounds, {padding: [40, 40]});
 {% endif %}
 </script>
 {% endblock content %}
